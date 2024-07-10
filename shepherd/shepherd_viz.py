@@ -7,6 +7,7 @@ import numpy as np
 from graphviz import Digraph, Source
 
 from shepherd.config_loader import load_and_preprocess_config
+from shepherd._version import __version__  # Import the version
 
 
 def load_json_from_file(filename):
@@ -135,6 +136,8 @@ def main():
                         help='Output filename prefix for the visualization')
     parser.add_argument('--output_format', '-f', type=str, default='png',
                         help='Output format for the visualization (e.g., svg, png)')
+    parser.add_argument('--version', '-v', action='version', version=f'Shepherd Visualization Tool {__version__}',
+                        help='Show the version and exit')
 
     args = parser.parse_args()
 

@@ -11,6 +11,7 @@ import yaml
 
 from shepherd.service_manager import ServiceManager
 from shepherd.logging_setup import setup_logging, listener_process
+from shepherd._version import __version__  # Import the version
 
 
 def main():
@@ -18,6 +19,8 @@ def main():
 
     parser.add_argument('--config', '-c', type=str, help='Path to the program config YAML file')
     parser.add_argument('--log', '-l', type=str, default='shepherd.log', help='Path to the log file')
+    parser.add_argument('--version', '-v', action='version', version=f'Shepherd {__version__}',
+                        help='Show the version and exit')
 
     args = parser.parse_args()
 

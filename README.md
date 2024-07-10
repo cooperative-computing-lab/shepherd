@@ -44,6 +44,23 @@ all programs ultimately transition to a `Final` state, reflecting their executio
 
 ![Test](diagram/dot/shepherd-state-machine.svg)
 
+## Installation
+
+To install Shepherd, use the following commands:
+
+### From Source
+
+```bash
+git clone https://github.com/cooperative-computing-lab/shepherd.git
+cd shepherd
+```
+
+### Using Pip (Not supported yet)
+To install Shepherd using pip, run:
+```bash
+pip install shepherd
+```
+
 
 ## Getting Started with Shepherd: A Hello World Example
 Shepherd simplifies complex application workflows. Here’s a simple example to demonstrate how to use Shepherd for 
@@ -89,6 +106,11 @@ If you are running the python source, then run
 
 ```shell
 python3 shepherd.py -c shepherd-config.yml
+```
+
+If you are running shepherd executable, then run
+```shell
+shepherd -c shepherd-config.yml
 ```
 
 #### Understanding the workflow
