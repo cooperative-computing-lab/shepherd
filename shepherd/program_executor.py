@@ -30,12 +30,36 @@ def execute_program(config, working_dir, state_dict, service_name, cond, state_t
     file_path_to_monitor = config.get('state', {}).get('file', {}).get('path', '')
     file_states = config.get('state', {}).get('file', {}).get('states', {})
 
+    file_dependencies = config.get('file_dependency', {})
+    file_dependency_mode = file_dependencies.get('mode', 'all')
+    file_dependency_items = file_dependencies.get('items', [])
+
     service_type = config.get('type', 'action')
 
     with cond:
         state_dict[service_name] = "initialized"
         update_state_time(service_name, "initialized", start_time, state_times)
         cond.notify_all()
+
+    if file_dependencies:
+        for file_dep in file_dependency_items:
+            print(file_dep)
+            file_path = file_dep['path']
+            min_size = file_dep.get('min_size', 1)
+
+            while (not os.path.exists(file_path)
+                   or (os.path.getsize(file_path) < min_size)) and not stop_event.is_set():
+
+                time.sleep(0.5)
+
+                if stop_event.is_set():
+                    with cond:
+                        state_dict[service_name] = "stopped_before_execution"
+                        update_state_time(service_name, "stopped_before_execution", start_time, state_times)
+                        cond.notify_all()
+                    return
+
+            logging.debug(f"Dependant file {file_path} found for service {service_name}")
 
     try:
         with cond:

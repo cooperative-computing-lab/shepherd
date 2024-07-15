@@ -1,13 +1,10 @@
 #!/usr/bin/env python3
 import multiprocessing
-import sys
 import time
 import logging
 import logging.config
 import logging.handlers
 import argparse
-
-import yaml
 
 from shepherd.service_manager import ServiceManager
 from shepherd.logging_setup import setup_logging, listener_process

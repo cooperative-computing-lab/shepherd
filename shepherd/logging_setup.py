@@ -1,6 +1,7 @@
 import logging
 import logging.config
 import logging.handlers
+import sys
 
 
 def setup_logging(queue):
@@ -16,9 +17,16 @@ def configure_listener(log_file=None):
         handler = logging.FileHandler(log_file)
     else:
         handler = logging.StreamHandler()
+
     formatter = logging.Formatter('%(asctime)s %(name)-12s %(levelname)-8s %(message)s')
     handler.setFormatter(formatter)
     root.addHandler(handler)
+
+    #Todo: make it optional?
+    stream_handler = logging.StreamHandler(sys.stdout)
+    stream_handler.setFormatter(formatter)
+    root.addHandler(stream_handler)
+
     root.setLevel(logging.DEBUG)
 
 
