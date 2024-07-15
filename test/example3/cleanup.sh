@@ -1,0 +1,1 @@
+rm file-created-by-program3.log

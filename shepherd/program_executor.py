@@ -43,7 +43,6 @@ def execute_program(config, working_dir, state_dict, service_name, cond, state_t
 
     if file_dependencies:
         for file_dep in file_dependency_items:
-            print(file_dep)
             file_path = file_dep['path']
             min_size = file_dep.get('min_size', 1)
 

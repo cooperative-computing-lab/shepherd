@@ -27,4 +27,5 @@ services:
         complete: "program is completed"
 output:
   state_times: "state_transition_times.json"
+cleanup_command: "./cleanup.sh"
 max_run_time: 120

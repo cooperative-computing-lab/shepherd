@@ -3,6 +3,7 @@ import logging
 import multiprocessing
 import os
 import signal
+import subprocess
 import threading
 import time
 from multiprocessing import Process
@@ -40,6 +41,7 @@ class ServiceManager:
         self.cond = multiprocessing.Condition()
         self.processes = {}
         self.logging_queue = logging_queue
+        self.cleanup_command = self.config.get('cleanup_command', None)
         logging.debug("ServiceManager initialized")
 
     def setup_signal_handlers(self):
@@ -98,6 +100,16 @@ class ServiceManager:
 
     def stop_all_services(self):
         logging.debug("Stopping all services")
+
+        if self.cleanup_command:
+            try:
+                logging.debug(f"Executing system cleanup command: {self.cleanup_command}")
+
+                subprocess.run(self.cleanup_command, shell=True, check=True)
+                logging.debug("System cleanup command executed successfully")
+            except subprocess.CalledProcessError as e:
+                logging.error(f"System cleanup command failed: {e}")
+
         for service_name, process in self.processes.items():
             pgid = self.pgid_dict.get(service_name)
             if pgid:
