@@ -1,4 +1,4 @@
-services:
+tasks:
   program1:
     command: "./program1.sh"
   program2:

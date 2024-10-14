@@ -3,16 +3,16 @@ import time
 import logging
 
 
-def monitor_log_file(log_path, state_dict, service_name, state_keywords, cond, state_times, start_time, stop_event):
-    logging.debug(f"Starting to monitor file '{log_path}' for {service_name}")
+def monitor_log_file(log_path, state_dict, task_name, state_keywords, cond, state_times, start_time, stop_event):
+    logging.debug(f"Starting to monitor file '{log_path}' for {task_name}")
 
     if not state_keywords:
-        logging.debug(f"No state keywords for {service_name}, exiting monitor")
+        logging.debug(f"No state keywords for {task_name}, exiting monitor")
         return
 
     while not os.path.exists(log_path):
         if stop_event.is_set():
-            logging.debug(f"Stop event set, exiting monitor for {service_name}")
+            logging.debug(f"Stop event set, exiting monitor for {task_name}")
             return
         time.sleep(0.1)
 
@@ -32,13 +32,13 @@ def monitor_log_file(log_path, state_dict, service_name, state_keywords, cond, s
             for state in state_keywords:
                 if state_keywords[state] in line:
                     with cond:
-                        state_dict[service_name] = state
-                        local_state_times = state_times[service_name]
+                        state_dict[task_name] = state
+                        local_state_times = state_times[task_name]
                         local_state_times[state] = current_time
-                        state_times[service_name] = local_state_times
+                        state_times[task_name] = local_state_times
                         cond.notify_all()
 
-                        logging.debug(f"{service_name} reached state '{state}' at {current_time}")
+                        logging.debug(f"{task_name} reached state '{state}' at {current_time}")
 
                         if state == last_state:
                             reached_last_state = True
@@ -47,4 +47,4 @@ def monitor_log_file(log_path, state_dict, service_name, state_keywords, cond, s
             if reached_last_state:
                 break
 
-    logging.debug(f"Finished monitoring file '{log_path}' for {service_name}")
+    logging.debug(f"Finished monitoring file '{log_path}' for {task_name}")

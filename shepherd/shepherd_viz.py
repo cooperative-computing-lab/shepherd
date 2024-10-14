@@ -75,7 +75,7 @@ def generate_state_transition_graph(config, state_transition, output_prefix, out
     }
 
     # Add subgraphs for each service with their state transitions
-    for service, details in config['services'].items():
+    for service, details in config['tasks'].items():
         service_type = details.get('type', 'action')  # Default to 'action' if type is not specified
         node_color = colors.get(service_type, 'lightgrey')  # Default color if no specific type is found
 
@@ -96,7 +96,7 @@ def generate_state_transition_graph(config, state_transition, output_prefix, out
             sub.attr(label=service)
 
     # Add edges based on dependencies
-    for service, details in config['services'].items():
+    for service, details in config['tasks'].items():
         dependencies = details.get('dependency', {}).get('items', {})
         for dep, state in dependencies.items():
             dot.edge(f'{dep}_{state}', f'{service}_started', label=f'{dep} {state}')
@@ -115,7 +115,7 @@ def generate_workflow_graph(config, output_prefix, output_format='png'):
     }
 
     # Add nodes with color based on service type
-    for service, details in config['services'].items():
+    for service, details in config['tasks'].items():
         service_type = details.get('type', 'action')  # Default to 'service' if type is not specified
         node_color = colors.get(service_type, 'lightgrey')  # Default color if no specific type is found
         dot.node(service, service, shape='box', style='filled', color=node_color)
@@ -156,4 +156,3 @@ def main():
 
 if __name__ == '__main__':
     main()
-q

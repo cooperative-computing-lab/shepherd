@@ -107,17 +107,18 @@ With this simple configuration, Shepherd will:
 
 ```json
 {
-  "program1": {
-    "initialized": 0.246384859085083,
-    "started": 0.24660515785217285,
-    "action_success": 5.349443197250366,
-    "final": 5.350545883178711
+  "my_service": {
+    "initialized": 0.19824790954589844,
+    "started": 0.19916582107543945,
+    "ready": 5.461252927780151,
+    "stopped": 60.36078095436096,
+    "final": 60.36192083358765
   },
-  "program2": {
-    "initialized": 0.2456510066986084,
-    "started": 5.351618051528931,
-    "action_success": 10.464960098266602,
-    "final": 10.465446949005127
+  "my_action": {
+    "initialized": 0.20003700256347656,
+    "started": 5.466093063354492,
+    "action_success": 10.657495021820068,
+    "final": 10.658098936080933
   }
 }
 ```

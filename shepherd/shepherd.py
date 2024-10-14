@@ -6,7 +6,7 @@ import logging.config
 import logging.handlers
 import argparse
 
-from shepherd.service_manager import ServiceManager
+from shepherd.service_manager import TaskManager
 from shepherd.logging_setup import setup_logging, listener_process
 from shepherd._version import __version__  # Import the version
 
@@ -32,8 +32,8 @@ def main():
     setup_logging(logging_queue)
 
     logging.debug("Starting main")
-    service_manager = ServiceManager(config_path, logging_queue)
-    service_manager.start_services(start_time)
+    service_manager = TaskManager(config_path, logging_queue)
+    service_manager.start_tasks(start_time)
     logging.debug("Exiting main")
 
     logging_queue.put(None)  # Send None to the listener to stop it

@@ -19,16 +19,16 @@ def load_and_preprocess_config(filepath):
 
 def preprocess_config(config, config_path):
     """Automatically fills in missing stdout_path and stderr_path paths."""
-    services = config.get('services', {})
+    tasks = config.get('tasks', {})
     stdout_dir = config.get('output', {}).get('stdout_dir', '')
     working_dir = os.path.dirname(os.path.abspath(config_path))
 
-    for service_name, details in services.items():
+    for task_name, details in tasks.items():
         # Auto-fill log and error files if not specified
         if 'stdout_path' not in details:
-            details['stdout_path'] = f"{service_name}_stdout.log"
+            details['stdout_path'] = f"{task_name}_stdout.log"
         if 'stderr_path' not in details:
-            details['stderr_path'] = f"{service_name}_stderr.log"
+            details['stderr_path'] = f"{task_name}_stderr.log"
 
         if stdout_dir:
             details['stdout_path'] = os.path.join(stdout_dir, details['stdout_path'])
@@ -45,23 +45,23 @@ def preprocess_config(config, config_path):
 
 def validate_and_sort_programs(config):
     logging.debug("Validating and sorting programs")
-    required_keys = ['services']
+    required_keys = ['tasks']
 
     for key in required_keys:
         if key not in config:
             raise ValueError(f"Missing required key: {key}")
 
-    services = config['services']
+    tasks = config['tasks']
 
-    for service, details in services.items():
+    for task, details in tasks.items():
         if 'command' not in details:
-            raise ValueError(f"Program {service} is missing the 'command' key")
+            raise ValueError(f"Program {task} is missing the 'command' key")
         if 'stdout_path' not in details:
-            raise ValueError(f"Program {service} is missing the 'stdout_path' key")
+            raise ValueError(f"Program {task} is missing the 'stdout_path' key")
 
-    sorted_services = topological_sort(services)
-    logging.debug(f"Sorted services: {sorted_services}")
-    return sorted_services
+    sorted_tasks = topological_sort(tasks)
+    logging.debug(f"Sorted tasks: {sorted_tasks}")
+    return sorted_tasks
 
 
 def topological_sort(programs):
