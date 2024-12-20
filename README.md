@@ -5,6 +5,7 @@ Shepherd is designed to manage local workflows that involve both actions that ru
 Shepherd is particularly useful for applications that require persistent services as part of a traditional task-based workflow. For example, consider a scenario where a web server should start only after the database service has completed its initialization and is ready to handle queries. The database does not perform a single action that completes; instead, it reaches an internal state that should dynamically trigger the launch of the web server. Shepherd can monitor the database service's logs for a message indicating successful startup. Upon detecting this state, Shepherd triggers the initiation of the web server, ensuring efficient workflow execution. Moreover, Shepherd wraps the entire service workflow into a single task that terminates upon completion, making it easy to integrate into larger task-based workflows.
 
 ## Key Features
+
 - **Services as Tasks:** Shepherd treats persistent services as first-class tasks within a workflow, enabling them to be seamlessly integrated into traditional task-based workflow managers.
 
 - **Dependency Management:** Shepherd allows tasks (both actions and services) to start based on the internal states of other services or actions, enabling complex state-based dependencies. It supports `any` and `all` dependency modes, allowing for flexible dependency configurations.
@@ -17,37 +18,42 @@ Shepherd is particularly useful for applications that require persistent service
 
 - **Integration with Larger Workflows:** By encapsulating service workflows into single tasks, Shepherd enables easy integration with larger distributed workflow managers like Makeflow, enhancing workflow flexibility and reliability.
 
-
 ## Program State Transition Overview
 
 The Shepherd tool manages program execution through a series of defined states, ensuring dependencies are met and  states are recorded. Every program has default states (`Initialized`, `Started`, and `Final`) and can have optional user-defined states. Programs transition from `Initialized` to `Started` once dependencies are satisfied, then move through user-defined states. Actions return `Action Success` on a zero return code and `Action Failure` otherwise, while services  transition to `Service Failure` if they stop unexpectedly. Any program receiving a stop signal is marked as `Stopped`, and all programs ultimately transition to a `Final` state, reflecting their execution outcome.
 
 ![Test](diagram/dot/shepherd-state-machine.svg)
 
-## Installation
+## Quick start
 
-To install Shepherd, clone the repository and install using pip:
+### Using `uv` (easiest and fastest)
+
+```bash
+git clone https://github.com/cooperative-computing-lab/shepherd.git
+uv sync --dev
+uv run examples/example3/run_test.sh
+```
+
+### Using pip
 
 ```bash
 git clone https://github.com/cooperative-computing-lab/shepherd.git
 cd shepherd
-pip install .
-```
+python --version # must be >=3.10
+# use uv or pyenv to install a more recent python version if needed
 
-Optionally, create a virtual environment before installing Shepherd to avoid conflicts with other Python packages:
-
-```bash
-python3 -m venv venv
+python -m venv venv
 source venv/bin/activate
 pip install .
+examples/example3/run_test.sh
 ```
 
-
 ## Getting Started with Shepherd: A Hello World Example
-Shepherd simplifies complex application workflows. Here’s a simple example to demonstrate how to use Shepherd for 
+
+Shepherd simplifies complex application workflows. Here’s a simple example to demonstrate how to use Shepherd for
 scheduling dependent programs. In this example, we have two shell scripts: `program1.sh` and `program2.sh`.  `program2` should start only after `program1` has successfully completed its execution.
 
-#### 1. Create Sample Scripts
+### 1. Create Sample Scripts
 
 Create two shell scripts named `program1.sh` and `program2.sh` with the following content:
 
@@ -60,49 +66,56 @@ echo "Program completed"
 ```
 
 Make sure to make the scripts executable:
-  
-  ```shell 
-  chmod +x program1.sh program2.sh
-  ```
 
-#### 2. Create a Shepherd Configuration File
-Create a Shepherd configuration file named `shepherd-config.yml` with the following content:
+```shell
+chmod +x program1.sh program2.sh
+```
+
+### 2. Create a Shepherd Configuration File
+
+Create a Shepherd configuration file named `shepherd-config.yaml` with the following content:
 
 ```yaml
-tasks:
-  program1:
-    command: "./program1.sh"
-  program2:
-    command: "./program2.sh"
-    dependency:
-      items:
-        program1: "action_success"  # Start program2 only after program1 succeeds
+services:
+    program1:
+        command: "./program1.sh"
+    program2:
+        command: "./program2.sh"
+        dependency:
+            items:
+                program1: "action_success"  # Start program2 only after program1 succeeds
 output:
-  state_times: "state_transition_times.json"
+    state_times: "state_transition_times.json"
 max_run_time: 60  # Optional: Limit total runtime to 60 seconds
 ```
 
-#### 3. Run Shepherd
+### 3. Run Shepherd
+
 Run Shepherd with the configuration file:
+
 ```shell
-shepherd -c shepherd-config.yml
+shepherd -c shepherd-config.yaml
 ```
 
 If you are running the python source, then run
+
 ```shell
-python3 shepherd.py -c shepherd-config.yml
+python3 run_shepherd.py -c shepherd-config.yaml
 ```
 
 If you are running shepherd executable, then run
+
 ```shell
-shepherd -c shepherd-config.yml
+shepherd -c shepherd-config.yaml
 ```
 
-#### Understanding the workflow
+### Understanding the workflow
+
 With this simple configuration, Shepherd will:
+
 1. Execute `program1.sh`.
 2. Monitor the internal states of the program.
-3. Start `program2.sh` only after `program1.sh `succeeds.
+3. Start `program2.sh` only after `program1.sh` succeeds.
 4. Create `state_transition_times.json`, which will look similar to this:
 
 ```json
@@ -124,9 +137,11 @@ With this simple configuration, Shepherd will:
 ```
 
 ## Monitoring User-Defined States in Shepherd
+
 Shepherd can monitor standard output (stdout) or any other file to detect user-defined states. These states can then be used as dependencies for other programs. This feature allows you to define complex workflows based on custom application states.
 
-#### Example Scenario: Dynamic Dependencies
+### Example Scenario: Dynamic Dependencies
+
 Suppose you have a service that becomes 'ready' after some initialization, and other tasks depend on it being ready.
 
 Example Service script (`service.sh`):
@@ -141,6 +156,7 @@ tail -f /dev/null  # Keep the service running
 ```
 
 Action script (`action.sh`):
+
 ```bash
 #!/bin/bash
 
@@ -150,16 +166,17 @@ echo "Action completed"
 ```
 
 Make sure to make the scripts executable:
-  
-  ```shell 
+
+  ```shell
   chmod +x service.sh action.sh
   ```
 
-#### Shepherd Configuration with user-defined states
+### Shepherd Configuration with user-defined states
+
 Below is a Shepherd configuration file that monitors the standard output of the service script to detect the 'ready' state. The action script starts only after the service is ready.
 
 ```yaml
-tasks:
+services:
   my_service:
     type: "service"
     command: "./service.sh"
@@ -177,7 +194,8 @@ output:
 max_run_time: 60
 ```
 
-#### How This Configuration Works
+### How This Configuration Works
+
 1. Shepherd starts the service script `service.sh`.
 2. Shepherd monitors the standard output of the service script for the message "Service is ready".
 3. Once the service is ready, Shepherd starts the action script `action.sh`.
@@ -202,9 +220,11 @@ max_run_time: 60
 ```
 
 ## Configuration Options
+
 Shepherd uses a YAML configuration file to define the workflow. Here are some key configuration options:
 
 ### Defining Tasks
+
 Tasks are defined under the tasks section. Each task can be an action or a service:
 
 - **Action:** A task that runs to completion and exits.
@@ -213,7 +233,7 @@ Tasks are defined under the tasks section. Each task can be an action or a servi
 The default type is action. Here is an example configuration with an action and a service:
 
 ```yaml
-tasks:
+services:
   my_action:
     type: "action"
     command: "python process_data.py"
@@ -223,12 +243,13 @@ tasks:
 ```
 
 ### Dependencies
+
 Dependencies specify when a task should start, based on the states of other tasks.
 
 - **Mode:** Specifies whether all dependencies must be met (`all`, the default) or any one (`any`).
 
 ```yaml
-tasks:
+services:
   task2:
     type: "action"
     command: "./task2.sh"
@@ -240,11 +261,13 @@ tasks:
 ```
 
 ### Monitoring User-Defined States
+
 Shepherd can monitor standard output or files to detect user-defined states. This allows you to control the workflow based on custom application states.
 
 Example of monitoring standard output:
+
 ```yaml
-tasks:
+services:
   my_program:
     command: "./my_program.sh"
     state:
@@ -256,7 +279,7 @@ tasks:
 Example of monitoring a file:
 
 ```yaml
-tasks:
+services:
   my_task:
     type: "action"
     command: "./my_task.sh"
@@ -268,6 +291,7 @@ tasks:
 ```
 
 ### Output Options
+
 Shepherd can generate output files containing state transition times and other logs. You can specify the output file paths in the configuration:
 
 ```yaml
@@ -278,6 +302,7 @@ output:
 ```
 
 ### Shutdown Conditions
+
 Shepherd can be configured to stop all tasks based on specific conditions, such as a stop signal, maximum runtime, or success criteria:
 
 - **Stop Signal:** A file that, when created, triggers a controlled shutdown.

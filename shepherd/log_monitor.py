@@ -1,50 +1,83 @@
-import os
+"""Monitors log files for specific keywords and updates the state dictionary."""
+
 import time
-import logging
+from multiprocessing.synchronize import Condition
+from multiprocessing.synchronize import Event
+from pathlib import Path
+
+from loguru import logger as log
 
 
-def monitor_log_file(log_path, state_dict, task_name, state_keywords, cond, state_times, start_time, stop_event):
-    logging.debug(f"Starting to monitor file '{log_path}' for {task_name}")
+def monitor_log_file(
+    log_path: str | Path,
+    state_dict: dict[str, str],
+    service_name: str,
+    state_keywords: dict[str, str],
+    cond: Condition,
+    state_times: dict[str, dict[str, float]],
+    start_time: float,
+    stop_event: Event,
+) -> None:
+    """Monitors a log file for specific keywords and updates the state dictionary."""
 
     if not state_keywords:
-        logging.debug(f"No state keywords for {task_name}, exiting monitor")
+        log.warning(
+            f"No state keywords for '{service_name}'; "
+            "exiting log monitor for this service."
+        )
         return
 
-    while not os.path.exists(log_path):
+    log_path = Path(log_path)
+    while not log_path.exists():
         if stop_event.is_set():
-            logging.debug(f"Stop event set, exiting monitor for {task_name}")
+            log.info(
+                f"Stop event set for service '{service_name}'; exiting log monitor"
+            )
             return
         time.sleep(0.1)
 
-    last_state = list(state_keywords.keys())[-1]
+    if not log_path.is_file():
+        log.warning(
+            f"Log path '{log_path}' for service '{service_name}' "
+            "is not a file; exiting log monitor"
+        )
+        return
 
-    with open(log_path, 'r') as file:
+    log.debug(f"Started monitoring '{log_path}' for service '{service_name}'")
+    last_state = list(state_keywords.keys())[-1]
+    reached_last_state: bool = False
+
+    with log_path.open(mode="r", encoding="utf-8") as log_file:
         while not stop_event.is_set():
-            line = file.readline()
+            line = log_file.readline()
             if not line:
-                time.sleep(0.01)
+                time.sleep(0.05)
                 continue
 
             current_time = time.time() - start_time
-
             reached_last_state = False
 
-            for state in state_keywords:
-                if state_keywords[state] in line:
-                    with cond:
-                        state_dict[task_name] = state
-                        local_state_times = state_times[task_name]
-                        local_state_times[state] = current_time
-                        state_times[task_name] = local_state_times
-                        cond.notify_all()
+            for state, value in state_keywords.items():
+                if value not in line:
+                    continue
+                with cond:
+                    state_dict[service_name] = state
+                    local_state_times = state_times[service_name]
+                    local_state_times[state] = current_time
+                    state_times[service_name] = local_state_times
+                    cond.notify_all()
 
-                        logging.debug(f"{task_name} reached state '{state}' at {current_time}")
+                    msg = (
+                        f"Service '{service_name}' reached state "
+                        f"'{state.upper()}' at {current_time}"
+                    )
+                    log.info(msg)
 
-                        if state == last_state:
-                            reached_last_state = True
-                            break
+                    if state == last_state:
+                        reached_last_state = True
+                        break
 
             if reached_last_state:
                 break
 
-    logging.debug(f"Finished monitoring file '{log_path}' for {task_name}")
+    log.info(f"Finished monitoring '{log_path}' for service '{service_name}'")
