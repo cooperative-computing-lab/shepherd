@@ -34,7 +34,7 @@
         Issues   = "https://github.com/cooperative-computing-lab/shepherd/issues"
 
 [dependency-groups]
-    dev = ["deptry>=0.21.2", "rich>=13.9.4", "ruff>=0.8.4"]
+    dev = ["deptry>=0.21.2", "rich>=13.9.4", "ruff>=0.8.4", "setuptools>=75.6.0"]
 
 # deptry detects unused and missing dependencies.
 [tool.deptry]
@@ -45,3 +45,195 @@
         # https://deptry.com/usage/#per-rule-ignores
         # DEP003 = ["shepherd"]
         DEP004 = ["rich"]
+
+
+[tool.pylint]
+
+    [tool.pylint.messages_control]
+        # https://pylint.readthedocs.io/en/stable/user_guide/messages/index.html
+        disable = [
+            "R0903", # too few public methods
+        ]
+
+[tool.pyright]
+    # https://github.com/microsoft/pyright/blob/main/docs/configuration.md
+    exclude = [
+        "*.proto",
+        "*.pyc",
+        "**/__pycache__",
+        "**/.cache/**",
+        "**/.dvc/**",
+        "**/.git/**",
+        "**/.git/objects/**",
+        "**/.git/subtree-cache/**",
+        "**/.ipynb_checkpoints/**",
+        "**/.neptune/**",
+        "**/.ruff_cache/**",
+        "**/.tox/**",
+        "**/.trash/**",
+        "**/.venv/**",
+        "**/build/**",
+        "**/cache/**",
+        "**/data/**",
+        "**/datalakes/**",
+        "**/dataset/**",
+        "**/datasets/**",
+        "**/dist/**",
+        "**/docs/**",
+        "**/node_modules/**",
+        "**/outputs/**",
+        "**/previews/**",
+        "**/temp/**",
+        "**/tmp/**",
+        "**/venv/**",
+    ]
+    include = [".", "src", "src/spectrumx"]
+    # Pylint rule list:
+    # https://pylint.readthedocs.io/en/stable/user_guide/checkers/features.html
+    lint.ignore = [
+        # "E501", # line too long
+        "R0903", # too few public methods
+    ]
+    pythonPlatform = "Linux"
+    pythonVersion = "3.13"
+    # "none", "warning", "information", or "error"
+    reportMissingTypeArgument = "information"
+    reportPrivateUsage        = "information"
+    stubPath                  = "./typings"   # defaults to ./typings
+    typeCheckingMode          = "standard"    # "off", "basic", "standard", "strict"
+
+    # Reports:
+    #   https://github.com/microsoft/pyright/blob/main/docs/configuration.md#type-check-diagnostics-settings
+    # place ignored rules here
+
+[tool.ruff]
+    # Exclude a variety of commonly ignored directories.
+    exclude = [
+        ".bzr",
+        ".direnv",
+        ".eggs",
+        ".git",
+        ".git-rewrite",
+        ".hg",
+        ".mypy_cache",
+        ".nox",
+        ".pants.d",
+        ".pytype",
+        ".ruff_cache",
+        ".svn",
+        ".tox",
+        ".venv",
+        "__pypackages__",
+        "_build",
+        "buck-out",
+        "build",
+        "dist",
+        "*/migrations/*.py",
+        "docs/",
+        "node_modules",
+        "staticfiles/*",
+        "venv",
+    ]
+    include = ["**/*.py", "shepherd/"]
+    indent-width = 4
+    line-length = 88
+    # IMPORTANT: in src, use paths from the root of the repository (starting with /)
+    src            = ["/shepherd/"]
+    target-version = "py313"
+
+    [tool.ruff.lint]
+        ignore = [
+            # https://docs.astral.sh/ruff/settings/#lint_ignore
+            "COM812", # disabled following ruff's recommendation
+            "ISC001", # disabled following ruff's recommendation
+            "RUF012", # Mutable class attributes should be annotated with `typing.ClassVar`
+            "S101",   # Use of assert detected https://docs.astral.sh/ruff/rules/assert/
+            "S104",   # Possible binding to all interfaces
+            "SIM102", # sometimes it's better to nest
+            "UP038",  # Checks for uses of isinstance/issubclass that take a tuple
+            # of types for comparison.
+            # UP038 deactivated because it can make the code slow:
+            # https://github.com/astral-sh/ruff/issues/7871
+        ]
+        select = [
+            # https://docs.astral.sh/ruff/settings/#lint_select
+            # RULE SETS: https://docs.astral.sh/ruff/rules/
+            "F",     # Pyflakes
+            "E",     # Pycodestyle errors
+            "W",     # Pycodestyle warnings
+            "C90",   # Cyclomatic complexity
+            "I",     # Isort (import order)
+            "N",     # PEP-8 Naming
+            "UP",    # PyUpgrade (modernize code)
+            "YTT",   # flake8-2020 (modernize code)
+            "ASYNC", # flake8-async
+            "S",     # flake8-bandit (security)
+            "BLE",   # flake8-blind-except
+            "FBT",   # flake8-boolean-trap
+            "B",     # flake8-bugbear (common errors)
+            "A",     # flake8-builtins
+            "COM",   # flake8-commas
+            "C4",    # flake8-comprehensions
+            "DTZ",   # flake8-date-time-zones
+            "T10",   # flake8-debugger
+            "DJ",    # flake8-django
+            "EM",    # flake8-errmsg
+            "EXE",   # flake8-executable
+            "FA",    # flake8-flask
+            'ISC',   # flake8-implicit-str-concat
+            "ICN",   # flake8-import-conventions
+            "LOG",   # flake8-logging
+            "G",     # flake8-logging-format
+            'INP',   # flake8-no-pep-420
+            'PIE',   # flake8-pie (misc lints)
+            "T20",   # flake8-print
+            'PYI',   # flake8-pyi (type hints)
+            'PT',    # flake8-pytest-style
+            "Q",     # flake8-quotes
+            "RSE",   # flake8-raise
+            "RET",   # flake8-return
+            "SLF",   # flake8-self
+            "SLOT",  # flake8-slot
+            "SIM",   # flake8-simplify
+            "TID",   # flake8-tidy-imports
+            "TCH",   # flake8-type-checking
+            "INT",   # flake8-gettext
+            "PTH",   # flake8-use-pathlib
+            "ERA",   # eradicate
+            "PD",    # pandas-vet
+            "PGH",   # pygrep-hooks
+            "PL",    # pylint
+            "R",     # refactor
+            "TRY",   # tryceratops (try/except)
+            "FLY",   # flynt (f-string)
+            "PERF",  # perflint (performance)
+            "FURB",  # refurb (refactorings for older code)
+            "RUF",   # ruff-specific rules
+            "AIR",   # airflow
+            # "ANN",  # flake8-annotations (type annotations; 100+ errors atm from cookiecutter-django)
+            # "ARG",  # unused function argument
+            # "DOC",  # docstrings
+            # "FAST", # fastapi
+            # "NPY",  # numpy-specific (unused)
+        ]
+        # Allow fix for all enabled rules (when `--fix`) is provided.
+        fixable   = ["ALL"]
+        unfixable = []
+        # The fixes in extend-unsafe-fixes will require
+        # provide the `--unsafe-fixes` flag when fixing.
+        extend-unsafe-fixes = ["UP038"]
+        # Allow unused variables when underscore-prefixed.
+        dummy-variable-rgx = "^(_+|(_+[a-zA-Z0-9_]*[a-zA-Z0-9]+?))$"
+
+        [tool.ruff.lint.isort]
+            force-single-line = true
+
+        [tool.ruff.lint.pylint]
+            # Controls PLR0913
+            max-args = 9
+
+    [tool.ruff.format]
+        indent-style              = "space"
+        line-ending               = "auto"
+        quote-style               = "double"
+        skip-magic-trailing-comma = false
