@@ -1,24 +1,47 @@
 [build-system]
-requires = ["setuptools>=61.0", "wheel"]
-build-backend = "setuptools.build_meta"
+    build-backend = "setuptools.build_meta"
+    requires      = ["setuptools>=61.0", "wheel"]
 
 [project]
-name = "shepherd"
-authors = [
-    { name = "Your Name", email = "your.email@example.com" },
-]
-description = "Shepherd - Service Orchestration and Monitoring Tool"
-readme = "README.md"
-requires-python = ">=3.6"
-classifiers = [
-    "Programming Language :: Python :: 3",
-    "License :: OSI Approved :: GNU General Public License v2 (GPLv2)",
-    "Operating System :: MacOS",
-    "Operating System :: POSIX :: Linux",
-]
+    authors = [{ name = "Your Name", email = "your.email@example.com" }]
+    classifiers = [
+        "Programming Language :: Python :: 3",
+        "License :: OSI Approved :: GNU General Public License v2 (GPLv2)",
+        "Operating System :: MacOS",
+        "Operating System :: POSIX :: Linux",
+    ]
+    description = "Shepherd - Service Orchestration and Monitoring Tool"
+    name = "shepherd"
+    readme = "README.md"
+    requires-python = ">=3.10"
 
-dynamic = ["version", "scripts", "dependencies"]
+    dependencies = [
+        "graphviz>=0.20.3",
+        "jinja2>=3.1.4",
+        "loguru>=0.7.3",
+        "matplotlib>=3.9.4",
+        "numpy>=2.0.2",
+        "pyyaml>=6.0.2",
+    ]
+    dynamic = ["version"]
 
-[project.urls]
-Homepage = "https://github.com/cooperative-computing-lab/shepherd"
-Issues = "https://github.com/cooperative-computing-lab/shepherd/issues"
+    [project.scripts]
+        shepherd     = "shepherd.main:main"
+        shepherd_viz = "shepherd.shepherd_viz:main"
+
+    [project.urls]
+        Homepage = "https://github.com/cooperative-computing-lab/shepherd"
+        Issues   = "https://github.com/cooperative-computing-lab/shepherd/issues"
+
+[dependency-groups]
+    dev = ["deptry>=0.21.2", "rich>=13.9.4", "ruff>=0.8.4"]
+
+# deptry detects unused and missing dependencies.
+[tool.deptry]
+
+    extend_exclude = ["docs/"]
+
+    [tool.deptry.per_rule_ignores]
+        # https://deptry.com/usage/#per-rule-ignores
+        # DEP003 = ["shepherd"]
+        DEP004 = ["rich"]

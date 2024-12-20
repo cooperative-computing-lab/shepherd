@@ -1,31 +1,24 @@
-import os
-from setuptools import setup, find_packages
+from pathlib import Path
+
+from setuptools import find_packages
+from setuptools import setup
 
 # Read the version from _version.py
 version = {}
-with open(os.path.join("shepherd", "_version.py")) as f:
-    exec(f.read(), version)
+version_path = Path(__file__).parent / "shepherd" / "_version.py"
+with version_path.open(mode="r", encoding="utf-8") as fp:
+    exec(fp.read(), version)
 
 setup(
-    name='shepherd',
-    version=version['__version__'],  # Use the imported version
-    description='Shepherd - Service Orchestration and Monitoring Tool',
-    long_description=open('README.md').read(),
-    long_description_content_type='text/markdown',
+    version=version["__version__"],  # Use the imported version
+    description="Shepherd - Service Orchestration and Monitoring Tool",
     packages=find_packages(),
     include_package_data=True,
     install_requires=[
-        'pyyaml',
-        'jinja2',
-        'graphviz',
-        'matplotlib',
-        'pandas',
+        "pyyaml",
+        "jinja2",
+        "graphviz",
+        "matplotlib",
+        "pandas",
     ],
-    entry_points={
-        'console_scripts': [
-            'shepherd=shepherd.shepherd:main',
-            'shepherd_viz=shepherd.shepherd_viz:main',
-        ],
-    },
-    python_requires='>=3.6',
 )
