@@ -24,22 +24,28 @@ The Shepherd tool manages program execution through a series of defined states, 
 
 ![Test](diagram/dot/shepherd-state-machine.svg)
 
-## Installation
+## Quick start
 
-To install Shepherd, clone the repository and install using pip:
+### Using `uv` (easiest and fastest)
+
+```bash
+git clone https://github.com/cooperative-computing-lab/shepherd.git
+uv sync --dev
+uv run examples/example3/run_test.sh
+```
+
+### Using pip
 
 ```bash
 git clone https://github.com/cooperative-computing-lab/shepherd.git
 cd shepherd
-pip install .
-```
+python --version # must be >=3.10
+# use uv or pyenv to install a more recent python version if needed
 
-Optionally, create a virtual environment before installing Shepherd to avoid conflicts with other Python packages:
-
-```bash
-python3 -m venv venv
+python -m venv venv
 source venv/bin/activate
 pip install .
+examples/example3/run_test.sh
 ```
 
 ## Getting Started with Shepherd: A Hello World Example
@@ -70,7 +76,7 @@ chmod +x program1.sh program2.sh
 Create a Shepherd configuration file named `shepherd-config.yaml` with the following content:
 
 ```yaml
-tasks:
+services:
     program1:
         command: "./program1.sh"
     program2:
@@ -170,7 +176,7 @@ Make sure to make the scripts executable:
 Below is a Shepherd configuration file that monitors the standard output of the service script to detect the 'ready' state. The action script starts only after the service is ready.
 
 ```yaml
-tasks:
+services:
   my_service:
     type: "service"
     command: "./service.sh"
@@ -227,7 +233,7 @@ Tasks are defined under the tasks section. Each task can be an action or a servi
 The default type is action. Here is an example configuration with an action and a service:
 
 ```yaml
-tasks:
+services:
   my_action:
     type: "action"
     command: "python process_data.py"
@@ -243,7 +249,7 @@ Dependencies specify when a task should start, based on the states of other task
 - **Mode:** Specifies whether all dependencies must be met (`all`, the default) or any one (`any`).
 
 ```yaml
-tasks:
+services:
   task2:
     type: "action"
     command: "./task2.sh"
@@ -261,7 +267,7 @@ Shepherd can monitor standard output or files to detect user-defined states. Thi
 Example of monitoring standard output:
 
 ```yaml
-tasks:
+services:
   my_program:
     command: "./my_program.sh"
     state:
@@ -273,7 +279,7 @@ tasks:
 Example of monitoring a file:
 
 ```yaml
-tasks:
+services:
   my_task:
     type: "action"
     command: "./my_task.sh"
