@@ -43,6 +43,7 @@ def main() -> None:
         "--work-dir",
         type=str,
         default=None,
+        required=True,
         help="Directory to where call the services / scripts from. Must exist.",
     )
     parser.add_argument(
@@ -59,7 +60,7 @@ def main() -> None:
         msg = f"Run directory not found: {run_dir}"
         raise NotADirectoryError(msg)
     config_path = Path(args.config)
-    working_dir = Path(args.work_dir) if args.work_dir else Path("/app/scripts")
+    working_dir = Path(args.work_dir)
     if not working_dir.is_dir():
         msg = (
             f"Working directory not found: {working_dir}. "
