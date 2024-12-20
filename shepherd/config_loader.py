@@ -1,81 +1,101 @@
-import os
-import logging
+"""Helpers to load and preprocess Shepherd configuration."""
+
+from pathlib import Path
+from typing import Any
+
 import yaml
+from loguru import logger as log
 
 
-def load_and_preprocess_config(filepath):
+def load_and_preprocess_config(filepath: Path) -> dict[str, Any]:
     """Loads and preprocesses configuration from a YAML file."""
-    if filepath is None or not os.path.exists(filepath):
+    if filepath is None:
         return None
+    if not filepath.exists():
+        msg = f"Config file not found: {filepath}"
+        raise FileNotFoundError(msg)
+    if not filepath.is_file():
+        msg = f"Config path is not a file: {filepath}"
+        raise ValueError(msg)
 
-    with open(filepath, 'r') as file:
+    with filepath.open(mode="r", encoding="utf-8") as file:
         config = yaml.safe_load(file)
 
-    preprocess_config(config, filepath)
+    preprocess_config(config, config_path=filepath)
 
-    logging.debug(f"Loaded and preprocessed config from {filepath}")
+    log.debug(f"Loaded and preprocessed config from {filepath}")
     return config
 
 
-def preprocess_config(config, config_path):
+def preprocess_config(config: dict[str, Any], config_path: Path) -> None:
     """Automatically fills in missing stdout_path and stderr_path paths."""
-    tasks = config.get('tasks', {})
-    stdout_dir = config.get('output', {}).get('stdout_dir', '')
-    working_dir = os.path.dirname(os.path.abspath(config_path))
+    services = config.get("services", {})
+    stdout_dir = config.get("output", {}).get("stdout_dir", "")
+    stdout_dir = Path(stdout_dir) if stdout_dir else None
+    working_dir = config_path.parent
 
-    for task_name, details in tasks.items():
+    for service_name, details in services.items():
         # Auto-fill log and error files if not specified
-        if 'stdout_path' not in details:
-            details['stdout_path'] = f"{task_name}_stdout.log"
-        if 'stderr_path' not in details:
-            details['stderr_path'] = f"{task_name}_stderr.log"
+        if "stdout_path" not in details:
+            details["stdout_path"] = f"{service_name}_stdout.log"
+        if "stderr_path" not in details:
+            details["stderr_path"] = f"{service_name}_stderr.log"
 
-        if stdout_dir:
-            details['stdout_path'] = os.path.join(stdout_dir, details['stdout_path'])
-            details['stderr_path'] = os.path.join(stdout_dir, details['stderr_path'])
-        else:
-            details['stdout_path'] = os.path.join(working_dir, details['stdout_path'])
-            details['stderr_path'] = os.path.join(working_dir, details['stderr_path'])
+        if not stdout_dir:
+            log.warning(f"Service '{service_name}' has no 'stdout_dir' specified.")
+        dir_used = stdout_dir if stdout_dir else working_dir
+        details["stdout_path"] = str(dir_used / details["stdout_path"])
+        details["stderr_path"] = str(dir_used / details["stderr_path"])
 
-        state_file_path = details.get('state', {}).get('file', {}).get('path', "")
+        state_file_path = details.get("state", {}).get("file", {}).get("path", "")
 
         if state_file_path:
-            details['state']['file']['path'] = os.path.join(working_dir, state_file_path)
+            details["state"]["file"]["path"] = str(working_dir / state_file_path)
 
 
-def validate_and_sort_programs(config):
-    logging.debug("Validating and sorting programs")
-    required_keys = ['tasks']
+def validate_and_sort_services(config: dict[str, Any]) -> list[str]:
+    """Validates and sorts services based on their dependencies."""
+    log.debug("Validating and sorting services")
+    required_keys = ["services"]
 
     for key in required_keys:
         if key not in config:
-            raise ValueError(f"Missing required key: {key}")
+            msg = f"Missing required key: {key}"
+            raise ValueError(msg)
 
-    tasks = config['tasks']
+    services = config["services"]
 
-    for task, details in tasks.items():
-        if 'command' not in details:
-            raise ValueError(f"Program {task} is missing the 'command' key")
-        if 'stdout_path' not in details:
-            raise ValueError(f"Program {task} is missing the 'stdout_path' key")
+    for service, details in services.items():
+        if "command" not in details:
+            msg = f"Service '{service}' is missing the 'command' key"
+            raise ValueError(msg)
+        if "stdout_path" not in details:
+            msg = f"Service '{service}' is missing the 'stdout_path' key"
+            raise ValueError(msg)
 
-    sorted_tasks = topological_sort(tasks)
-    logging.debug(f"Sorted tasks: {sorted_tasks}")
-    return sorted_tasks
+    sorted_services = topological_sort(services)
+    log.debug(f"Sorted services: {sorted_services}")
+    return sorted_services
 
 
-def topological_sort(programs):
-    logging.debug("Performing topological sort")
+def topological_sort(services: dict[str, dict[str, Any]]) -> list[str]:
+    """Forms a graph of services and dependencies, sorting them topologically."""
+    log.debug("Performing topological sort")
 
-    graph = {program: details.get('dependency', {}).get('items', {}) for program, details in programs.items()}
+    graph = {
+        service: details.get("dependency", {}).get("items", {})
+        for service, details in services.items()
+    }
 
-    visited = set()
-    visiting = set()
-    stack = []
+    visited: set[str] = set()
+    visiting: set[str] = set()
+    stack: list[str] = []
 
-    def dfs(node):
+    def dfs(node) -> None:
+        """Depth-first search for topological sort."""
         if node in visiting:
-            raise ValueError(f"Cyclic dependency on {node}")
+            msg = f"Cyclic dependency on {node}"
+            raise ValueError(msg)
 
         visiting.add(node)
 
@@ -87,7 +107,7 @@ def topological_sort(programs):
 
         visiting.remove(node)
 
-    for program in graph:
-        dfs(program)
-    logging.debug(f"Topological sort result: {stack}")
+    for service in graph:
+        dfs(service)
+    log.debug(f"Topological sort result: {stack}")
     return stack
