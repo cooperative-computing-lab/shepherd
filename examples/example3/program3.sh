@@ -18,7 +18,7 @@ run_duration=30
 while true; do
     echo "$(date +%s) - program is running"
     sleep 0.5
-    echo "File created by program3" > ./file-created-by-program3.log
+    echo "File created by program3" >"./outputs/file-created-by-program3.log"
     if [[ $(date +%s) -gt $((READY_TIME + run_duration)) ]]; then
         echo "$(date +%s) - program is completed"
         break

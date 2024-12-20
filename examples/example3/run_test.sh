@@ -5,6 +5,8 @@ echo "Starting test ..."
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" &>/dev/null && pwd)"
 echo "Script directory: ${SCRIPT_DIR}"
-shepherd --run-dir "${SCRIPT_DIR}" --work-dir "${SCRIPT_DIR}" --config "${SCRIPT_DIR}/shepherd-config.yaml"
+shepherd --config "${SCRIPT_DIR}/shepherd-config.yaml" \
+    --work-dir "${SCRIPT_DIR}" \
+    --run-dir "${SCRIPT_DIR}/outputs"
 
 echo "Completed test"
