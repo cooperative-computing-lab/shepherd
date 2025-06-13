@@ -28,7 +28,7 @@ def load_json_from_file(filename):
 def render_dot(
     dot_source, output_filename="workflow_visualization", output_format="png"
 ):
-    # Todo: try optional unflatten method
+    # TODO: try optional unflatten method
     src = Source(dot_source)
     src.format = output_format
     src.render(output_filename)
@@ -53,14 +53,12 @@ def generate_state_times_graph(
         }
     )
 
-    state_colors = plt.cm.tab20(np.linspace(0, 1, len(unique_states)))
+    state_colors = plt.cm.tab20(np.linspace(0, 1, len(unique_states)))  # pyright: ignore[reportAttributeAccessIssue]
     color_map = dict(zip(unique_states, state_colors, strict=False))
 
-    fig, ax = plt.subplots(figsize=fig_size)
+    _fig, ax = plt.subplots(figsize=fig_size)
 
-    for idx, (_service, state_times) in enumerate(
-        sorted_state_transition_times.items()
-    ):
+    for idx, state_times in enumerate(sorted_state_transition_times.values()):
         sorted_states = sorted(state_times.items(), key=lambda x: x[1])
         previous_time = sorted_states[1][1]  # skipping initialized state
 
@@ -111,7 +109,7 @@ def generate_state_transition_graph(
             service_type, "lightgrey"
         )  # Default color if no specific type is found
 
-        with dot.subgraph(name=f"cluster_{service}") as sub:
+        with dot.subgraph(name=f"cluster_{service}") as sub:  # pyright: ignore[reportOptionalContextManager]
             sub.attr(style="filled", color="lightgrey")
             sub.node_attr.update(style="filled", color=node_color)
             states = state_transition.get(service, {})
