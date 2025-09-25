@@ -21,7 +21,7 @@ export GAZEBO_MASTER_URI="http://localhost:${drone_0_gazebo_master_port}"
 echo "GAZEBO_MASTER_URI set to $GAZEBO_MASTER_URI"
 
 function spawn_model() {
-    local N=$1  # Instance Number
+    local N=$1 # Instance Number
     local MODEL=$2
     local X=0.0
     local Y=$((3 * N))
@@ -30,15 +30,15 @@ function spawn_model() {
     echo "Starting PX4 instance $N with simulator port $simulator_port"
 
     python3 "${FIRMWARE_PATH}/Tools/sitl_gazebo/scripts/jinja_gen.py" \
-            "${FIRMWARE_PATH}/Tools/sitl_gazebo/models/${MODEL}/${MODEL}.sdf.jinja" \
-            "${FIRMWARE_PATH}/Tools/sitl_gazebo" \
-            --mavlink_tcp_port $simulator_port \
-            --mavlink_udp_port $((14560 + N)) \
-            --mavlink_id $((1 + N)) \
-            --gst_udp_port $((5600 + N)) \
-            --video_uri $((5600 + N)) \
-            --mavlink_cam_udp_port $((14530 + N)) \
-            --output-file "/tmp/${MODEL}_${N}.sdf"
+        "${FIRMWARE_PATH}/Tools/sitl_gazebo/models/${MODEL}/${MODEL}.sdf.jinja" \
+        "${FIRMWARE_PATH}/Tools/sitl_gazebo" \
+        --mavlink_tcp_port $simulator_port \
+        --mavlink_udp_port $((14560 + N)) \
+        --mavlink_id $((1 + N)) \
+        --gst_udp_port $((5600 + N)) \
+        --video_uri $((5600 + N)) \
+        --mavlink_cam_udp_port $((14530 + N)) \
+        --output-file "/tmp/${MODEL}_${N}.sdf"
 
     echo "Spawning ${MODEL}_${N} at X=${X}, Y=${Y}"
     gz model --spawn-file="/tmp/${MODEL}_${N}.sdf" --model-name="${MODEL}_${N}" -x $X -y $Y -z 0.83
@@ -46,4 +46,3 @@ function spawn_model() {
 
 # Spawn model
 spawn_model $instance_number $VEHICLE_MODEL
-

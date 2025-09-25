@@ -1,0 +1,3 @@
+*.log
+**/outputs/**
+state_transition_times.json
